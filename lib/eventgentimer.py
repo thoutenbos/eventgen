@@ -134,7 +134,7 @@ class Timer(threading.Thread):
                             else:
                                 self.logger.debug("Still backfilling for sample '%s'.  Currently at %s" % (self.sample.name, self.sample.backfillts))
 
-                        if not p.queueable:
+                        if not p.queueable or self.sample.end != None:
                             try:
                                 partialInterval = p.gen(count, et, lt)
                             # 11/24/13 CS Blanket catch for any errors
@@ -161,8 +161,16 @@ class Timer(threading.Thread):
                             #     self.logger.debugv("Flushing because we're sleeping longer than a polling interval")
                             #     self.sample.out.flush()
 
-                              
-                            self.logger.debug("Generation of sample '%s' in app '%s' sleeping for %f seconds" \
+                            if self.sample.end != None:
+                              if self.sample.endts == None:
+                                if self.executions >= self.sample.end:
+                                    self.logger.info("Queue size %d on sample %s" % (c.generatorQueueSize.value(), self.sample.name))
+                                    self.stopping = True
+                              elif lt >= self.sample.endts:
+                                self.logger.info("End Time '%s' reached, ending generation of sample '%s'" % (self.sample.endts, self.sample.name))
+                                self.stopping = True
+                            else:
+                              self.logger.debug("Generation of sample '%s' in app '%s' sleeping for %f seconds" \
                                         % (self.sample.name, self.sample.app, partialInterval) ) 
                             # logger.debug("Queue depth for sample '%s' in app '%s': %d" % (self.sample.name, self.sample.app, c.outputQueue.qsize()))   
                         else:

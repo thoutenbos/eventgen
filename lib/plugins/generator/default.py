@@ -22,11 +22,15 @@ class DefaultGenerator(GeneratorPlugin):
 
         from eventgenconfig import Config
         globals()['c'] = Config()
+        self._sample = sample
 
     def gen(self, count, earliest, latest, samplename=None):
         # 2/10/14 CS set s to our local copy of the sample
-        s = self._samples[samplename]
-        self._sample = s
+        if samplename != None:
+          s = self._samples[samplename]
+          self._sample = s
+        else:
+          s = self._sample
 
         # 6/9/14 CS If we get an exception loading the sample, fail
         try:
